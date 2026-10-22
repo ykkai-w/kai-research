@@ -2,57 +2,113 @@
 
 面向量化金融、统计与机器学习等领域的中英文研究论证与结果分析。
 
+Research argumentation and results analysis in Chinese and English for quantitative finance, statistics, machine learning, and related fields.
+
 kai-research 是供 Codex、Claude Code 等 AI 大模型使用的研究论证 skill。它根据研究问题、设计与结果，确定首要结论、比较对象和证据主次，用于撰写结果分析、讨论与局限，起草审稿回应，以及选择值得补做的分析。中英文共用一个入口，可以直接查看[使用方法](#使用方法)、[中英文合成教学例](#中英文合成教学例)和[来源依据](references/SOURCES.md)。
+
+kai-research is a research argumentation skill for Codex, Claude Code, and other AI models. Working from the research question, design, and results, it identifies the main conclusion, relevant comparisons, and the relative weight of the evidence. It supports results analysis, discussion and limitations, reviewer responses, and the selection of worthwhile additional analyses. Chinese and English share one entry point. See [Usage](#使用方法), [Chinese and English synthetic teaching examples](#中英文合成教学例), and [Source evidence](references/SOURCES.md).
+
+[中文版 skill](SKILL.md) · [English skill](SKILL.en.md)
 
 ## 本skill的训练机制
 
+How this skill was trained
+
 项目沿用 [kai-writing](https://github.com/ykkai-w/kai-writing) 的200篇中英文参考论文作为共享选目，从中选择预测、因果识别、理论与校准、方法模拟等研究，阅读它们如何提出主张、组织比较和处理相反结果。规范的来源包括17篇论文的阅读与核对记录，以及结果分析、讨论和审稿回应任务中的实际反馈。学习时把作者的主张与表图、设计和证明放在一起核对，既提取可迁移的做法，也辨认证据与结论不一致的地方。
+
+The project shares [kai-writing](https://github.com/ykkai-w/kai-writing)'s collection of 200 Chinese- and English-language reference papers. It selects studies in prediction, causal identification, theory and calibration, and methodological simulation to examine how they make claims, organize comparisons, and handle contrary results. The guidance draws on reading and verification records for 17 papers, along with feedback from results analysis, discussion, and reviewer-response tasks. Authors' claims are checked against tables, figures, research designs, and proofs to identify both transferable practices and mismatches between evidence and conclusions.
 
 ![本skill的训练流程](assets/workflow.png)
 
 试写时，模型根据研究问题、设计和结果材料完成正文或回应，再由评阅者逐项核对数值、比较对象、判断强度和行文。发现问题后，先区分材料提取、研究判断与文字表达，再修改对应的规则和例子，用其他任务检查。训练形成的是可加载的规范与教学例，具体材料范围和核对方法见[开发说明](docs/DEVELOPMENT.md)。
 
+In trial tasks, the model drafts manuscript prose or a response from the research question, design, and results. A reviewer then checks the values, comparators, strength of claims, and writing. Problems are first traced to material extraction, research judgment, or expression; the corresponding rules and examples are revised and checked on other tasks. Training produces loadable guidance and teaching examples. See the [Development notes](docs/DEVELOPMENT.md) for the materials covered and verification methods.
+
 训练关注具体判断怎样成立。平均指标上的改善，要结合分组结果理解；机制解释，要回到能够区分竞争解释的检验。方法仍有误差时，直接对照可以说明它是否优于基准；随机实验采用回归时，因果解释来自随机分配。kai-research 将这些判断落实为可重复使用的工作方法。
+
+Training focuses on what supports a particular judgment. Improvements in average metrics need to be read alongside subgroup results, and mechanism explanations need tests that distinguish competing accounts. A method may still have error while a direct comparison shows that it outperforms a benchmark. When regression is used in a randomized experiment, the causal interpretation comes from random assignment. kai-research turns these judgments into reusable working practices.
 
 ## 具体解决哪些问题
 
+Problems this skill addresses
+
 **① 结果很多，研究问题却没有被直接回答。** 先找到支持首要结论的比较，再安排稳健性、异质性、机制与扩展。新增组件是否有效，要看同一模型增删组件的对照；方法在已有路线中处于什么水平，再看外部基准。两类比较各自回答对应的问题。
+
+**① Many results, but no direct answer to the research question.** Identify the comparison that supports the main conclusion before arranging robustness, heterogeneity, mechanisms, and extensions. Whether a new component helps is assessed by comparing the same model with and without it; where the resulting method stands among existing approaches is assessed against external benchmarks. Each comparison answers its own question.
 
 **② 数值更好，就被写成全面占优。** 效果量带着基数、单位和不确定性报告，收益与风险、覆盖率与区间长度、检测速度与误报等成对呈现。正文交代影响结论的反转和代价，保留已有比较支持的优势。
 
+**② A better number becomes a claim of superiority on every front.** Report effect sizes with reference quantities, units, and uncertainty. Present returns with risk, coverage with interval length, and detection speed with false alarms. Explain reversals and costs that affect the conclusion while preserving advantages supported by the comparisons.
+
 **③ 预测、因果和机制混在一起。** 根据设计与假设判断证据用途。预测改进说明可预测性，随机分配等识别设计支持相应的处理效应，机制归因则需要能区分竞争解释的证据。系数、损失权重和特征重要性分别按实际含义解释。
+
+**③ Prediction, causation, and mechanisms are conflated.** Judge what the evidence establishes from the design and assumptions. Better predictions establish predictability; identification designs such as random assignment support corresponding treatment effects; mechanism attribution requires evidence that distinguishes competing explanations. Interpret coefficients, loss weights, and feature importance according to what each actually means.
 
 **④ 平均结果掩盖方法何时失效。** 把分时段、分组和单元结果放回主结论，说明改善集中在哪里、哪些条件下出现反转。有目标值的指标按距目标的偏离比较，不把数值下降一概称为改进。
 
+**④ Averages conceal when a method fails.** Bring results by period, group, and unit back into the main conclusion, showing where improvements concentrate and under what conditions they reverse. For metrics with a target value, compare deviations from the target rather than treating every decrease as an improvement.
+
 **⑤ 稳健性检验只剩一排显著性星号。** 每项检验对应一个具体担忧，同时看估计值和精度怎样变化。换样本后不显著，可能来自效应缩小，也可能来自估计精度下降；同一结果的机械换算不重复算作独立证据。
+
+**⑤ Robustness checks become a row of significance stars.** Tie each check to a specific concern and examine changes in both estimates and precision. Loss of significance after a sample change may reflect a smaller effect or lower precision. Mechanical conversions of the same result do not count as additional independent evidence.
 
 **⑥ 限制段写成通用免责声明。** 只讨论会改变当前判断的具体问题，把偏误、估计精度与适用范围分开。研究仍有不足时，继续保留直接比较支持的发现；正文已经交代的样本和参数条件，也不在段末反复否定。
 
+**⑥ Limitations turn into generic disclaimers.** Discuss only specific issues that change the current judgment, separating bias, precision, and applicability. Preserve findings supported by direct comparisons even when shortcomings remain, and do not repeatedly negate findings at paragraph endings when sample and parameter conditions have already been stated.
+
 **⑦ 回应审稿人时无依据让步。** 先核对意见所述事实与原稿。已有证据能回答的，指出位置并解释；原文确有歧义的，改清表述；主张超出证据的，收缩对应部分。审稿人的误读不自动变成作者的错误。
+
+**⑦ Reviewer responses concede points without grounds.** Check the comment's factual account against the manuscript first. If existing evidence answers it, identify the location and explain it; if the wording is genuinely ambiguous, clarify it; if a claim exceeds the evidence, narrow that part. A reviewer's misreading does not automatically become the author's mistake.
 
 **⑧ 拟议修改被写成已经完成。** 回应信区分已有结果、实际改动、建议替换文字和计划分析。补充分析优先解决会改变首要结论的问题，写清不同结果意味着什么，再按成本取舍。
 
+**⑧ Proposed revisions are described as completed.** Distinguish existing results, changes actually made, suggested replacement text, and planned analyses in response letters. Prioritize additional analyses that could change the main conclusion, state what different outcomes would mean, and then weigh their cost.
+
 ## 使用方法
+
+Usage
 
 **① 读取规范。** 下载项目目录，交给 Codex、Claude Code 等 AI 大模型，要求先完整读取 [SKILL.md](SKILL.md)。结果分析、讨论、审稿回应和研究类型的细节放在同目录的 `references/` 中，按任务选择即可。
 
+**① Read the guidance.** Download the project directory, give it to Codex, Claude Code, or another AI model, and ask it to read [SKILL.md](SKILL.md) in full first. Details on results analysis, discussion, reviewer responses, and study types are in the accompanying `references/` directory; select them according to the task.
+
+英文指令版见 [SKILL.en.md](SKILL.en.md)，与中文版共用现有参考资料。
+
+The English instructions are in [SKILL.en.md](SKILL.en.md) and share the existing reference materials with the Chinese version.
+
 **② 提供研究材料。** 附上研究问题、设计、结果表或稿件，说明目标语言、章节和篇幅。已有标题、摘要或审稿意见时一并提供，使模型能够核对当前主张与证据之间的关系。
+
+**② Supply the research materials.** Attach the research question, design, result tables, or manuscript, and specify the target language, section, and length. Include any existing title, abstract, or reviewer comments so the model can check how the current claims relate to the evidence.
 
 **③ 指定交付内容。** 写结果分析时可以这样提出要求。“先完整读取 kai-research/SKILL.md。根据研究问题、设计和结果表撰写中文结果分析，约1000字。围绕主比较展开，保留重要反例和代价。正式正文与需要核实的事项分开。”起草回应信时，补充说明稿件哪些地方已经修改、哪些分析已经完成。
 
+**③ Specify the deliverable.** For results analysis, a request could be: “First read kai-research/SKILL.md in full. Write a results analysis in Chinese of about 1,000 Chinese characters from the research question, design, and result tables. Organize it around the main comparison and preserve important counterexamples and costs. Keep manuscript prose separate from matters needing verification.” When requesting a response letter, also state which manuscript changes and analyses have already been completed.
+
 **④ 对照材料检查。** 核对数字、基准、单位和区间，检查结论是否仍回答原来的问题。修改稿件时，让摘要、结果、讨论与结论使用一致的对象、条件和判断强度。研究论证之外的句子润色，可继续配合 kai-writing。
+
+**④ Check against the materials.** Verify values, benchmarks, units, and intervals, and check that the conclusion still answers the original question. When revising a manuscript, keep the subjects, conditions, and strength of claims consistent across the abstract, results, discussion, and conclusion. Use kai-writing alongside it for sentence-level editing beyond research argumentation.
 
 ## 中英文合成教学例
 
+Chinese and English synthetic teaching examples
+
 以下两例为合成教学例，根据项目已有任务材料编辑，展示如何从研究设计和结果组织论证。[材料与说明](docs/EXAMPLES.md)提供对应设计、数值和回应。
+
+These two synthetic teaching examples, edited from existing project task materials, show how to organize an argument from the research design and results. The corresponding designs, values, and responses are provided in [Materials and notes](docs/EXAMPLES.md).
 
 ### 中文例　保留相对改善，同时报告代价
 
+Chinese example — Retaining relative improvement while reporting its cost
+
 材料比较转折识别方法 G 与基准 B。两者使用相同输入，G 新增一个序列状态模块。12条独立模拟序列预先设定96次转折，两种方法均在5日窗口内检出全部转折。平均延迟分别为1.2与2.8个交易日，非事件窗口误报比例分别为7.0%与4.0%。
+
+The materials compare turning-point detection method G with benchmark B. Both use the same inputs, while G adds a sequence-state module. Across 12 independent simulated sequences with 96 prespecified turning points, both methods detect every turning point within a five-day window. Their mean delays are 1.2 and 2.8 trading days, respectively, and their false-alarm rates in non-event windows are 7.0% and 4.0%.
 
 ![转折识别的结果分析教学例](assets/example-cn.png)
 
 这一写法保留了提速的直接证据，同时把误报代价放在同一个比较中。G 仍有1.2日滞后，并不否定它比 B 更快。[查看文字与拟议回应](docs/EXAMPLES.md#中文例-转折识别速度与误报)。
+
+This wording preserves the direct evidence of faster detection while placing the false-alarm cost in the same comparison. G still has a 1.2-day lag, which does not negate its being faster than B. [Read the text and proposed response](docs/EXAMPLES.md#中文例-转折识别速度与误报).
 
 ### English example　Retaining a supported causal claim
 
@@ -64,17 +120,29 @@ The causal wording follows from the randomized design. Regression estimates the 
 
 ## 参考文献
 
+References
+
 本项目与 [kai-writing](https://github.com/ykkai-w/kai-writing)、[kaiplot](https://github.com/ykkai-w/kai-plot) 共用200篇中英文参考选目，中文、英文各100篇。书目见下，选用与版本说明见[书目来源说明](docs/BIBLIOGRAPHY_NOTES.md)。
 
+This project shares a collection of 200 reference papers with [kai-writing](https://github.com/ykkai-w/kai-writing) and [kaiplot](https://github.com/ykkai-w/kai-plot), comprising 100 Chinese-language and 100 English-language papers. The bibliography appears below; selection and version details are in the [Bibliography notes](docs/BIBLIOGRAPHY_NOTES.md).
+
 ### 刊物与载体分布
+
+Publication venues and formats
 
 ![200篇参考论文的刊物分布](assets/corpus-distribution.png)
 
 期刊论文195篇、期刊在线提前发表版本1篇、会议论文2篇、预印本2篇。
 
+195 journal articles, one advance-online journal article, two conference papers, and two preprints.
+
 #### 中文（100篇）
 
+Chinese-language papers (100)
+
 ##### 统计研究（24篇）
+
+Statistical Research (24 papers)
 
 [1] 张雨露, 平卫英, 罗良清. 数据要素供给使用核算框架研究[J]. 统计研究, 2026, 43(1): 15-28. DOI: [10.19343/j.cnki.11-1302/c.2026.01.001](https://doi.org/10.19343/j.cnki.11-1302/c.2026.01.001). [原文](https://tjyj.cbpt.cnki.net/portal/journal/portal/client/paper/af00cc9ab31ad2abade2cec91462e0db).
 
@@ -125,6 +193,8 @@ The causal wording follows from the randomized design. Regression estimates the 
 [24] 陈磊, 陈松蹊, 何婧. 我国人口发展趋势及政策启示[J]. 统计研究, 2026, 43(8): 31-45. DOI: [10.19343/j.cnki.11-1302/c.2026.08.003](https://doi.org/10.19343/j.cnki.11-1302/c.2026.08.003). [原文](https://tjyj.cbpt.cnki.net/portal/journal/portal/client/paper/623c87805a23170700d3dc60d172d5cb).
 
 ##### 系统工程理论与实践（26篇）
+
+Systems Engineering — Theory & Practice (26 papers)
 
 [25] 马键, 胡毅, 汪寿阳. 有效协变量平衡倾向得分的奇异性问题与改进方法[J]. 系统工程理论与实践, 2026, 46(3): 1304-1323. DOI: [10.12011/SETP2024-1608](https://doi.org/10.12011/SETP2024-1608). [原文](https://sysengi.cjoe.ac.cn/CN/10.12011/SETP2024-1608).
 
@@ -179,6 +249,8 @@ The causal wording follows from the randomized design. Regression estimates the 
 [50] 傅小倞, 陈榆彬, 李桦佚, 钱夏睿, 秦睿, 董书宇, 李珊. 基于IMI-LP模型的森林火灾蔓延趋势预测研究[J]. 系统工程理论与实践, 2026, 46(6): 2672-2691. DOI: [10.12011/SETP2024-2050](https://doi.org/10.12011/SETP2024-2050). [原文](https://sysengi.cjoe.ac.cn/CN/10.12011/SETP2024-2050).
 
 ##### 中国管理科学（30篇）
+
+Chinese Journal of Management Science (30 papers)
 
 [51] 郑强, 梁德翠, 付园园, 徐泽水. 基于三支冲突感知分析的群决策共识模型[J]. 中国管理科学, 2026, 34(1): 85-93. DOI: [10.16381/j.cnki.issn1003-207x.2023.0901](https://doi.org/10.16381/j.cnki.issn1003-207x.2023.0901). [原文](https://www.zgglkx.com/CN/10.16381/j.cnki.issn1003-207x.2023.0901).
 
@@ -242,6 +314,8 @@ The causal wording follows from the randomized design. Regression estimates the 
 
 ##### 金融研究（10篇）
 
+Journal of Financial Research (10 papers)
+
 [81] 刘珺, 康立, 丁雨婷. 资产价格与通胀感知偏差——基于数字金融发展的再思考[J]. 金融研究, 2026, (6): 1-19. [原文](http://www.jryj.org.cn/CN/abstract/abstract1618.shtml).
 
 [82] 孟源祎, 聂卓, 马光荣, 赵耀红. 开“前门”是否有助堵“后门”？——地方政府专项债务发行对隐性债务举借的影响[J]. 金融研究, 2026, (6): 20-37. [原文](http://www.jryj.org.cn/CN/abstract/abstract1619.shtml).
@@ -264,6 +338,8 @@ The causal wording follows from the randomized design. Regression estimates the 
 
 ##### 软件学报（5篇）
 
+Journal of Software (5 papers)
+
 [91] 汪莹, 字千成, 彭鑫, 娄一翎. 基于大语言模型的故障复现测试用例生成方法[J]. 软件学报, 2026,37(4):1690-1714. DOI: [10.13328/j.cnki.jos.007474](https://doi.org/10.13328/j.cnki.jos.007474). [原文](https://www.jos.org.cn/jos/ch/reader/view_abstract.aspx?file_no=7474&flag=1).
 
 [92] 李昱洁, 吴晗, 孟丹, 李天瑞, 杨新. 面向开放世界持续学习的任务敏感提示驱动混合专家模型[J]. 软件学报, 2026,37(4):1531-1547. DOI: [10.13328/j.cnki.jos.007525](https://doi.org/10.13328/j.cnki.jos.007525). [原文](https://www.jos.org.cn/jos/ch/reader/view_abstract.aspx?file_no=7525&flag=1).
@@ -275,6 +351,8 @@ The causal wording follows from the randomized design. Regression estimates the 
 [95] 曲慕子, 亢良伊, 刘杰, 王帅, 叶丹, 黄涛. CodeLLMTuner: 基于样本重用的代码大模型选择与解码参数调优框架[J]. 软件学报, 2026,37(5):2131-2150. DOI: [10.13328/j.cnki.jos.007508](https://doi.org/10.13328/j.cnki.jos.007508). [原文](https://www.jos.org.cn/jos/ch/reader/view_abstract.aspx?file_no=7508&flag=1).
 
 ##### 管理世界（5篇）
+
+Journal of Management World (5 papers)
 
 [96] 李晶晶, 陈帅, 秦萍, 耿可心, 王雅璨. 信用管理对消费者行为的双重影响——基于哈啰单车驾照分的实证分析[J]. 管理世界, 2025, 41(4): 136-154. DOI: [10.19744/j.cnki.11-1235/f.2025.0051](https://doi.org/10.19744/j.cnki.11-1235/f.2025.0051). [原文](https://doi.org/10.19744/j.cnki.11-1235/f.2025.0051).
 
@@ -288,7 +366,11 @@ The causal wording follows from the randomized design. Regression estimates the 
 
 #### 英文（100篇）
 
+English-language papers (100)
+
 ##### Journal of Machine Learning Research（34篇）
+
+Journal of Machine Learning Research (34 papers)
 
 [101] Ansgar Steland. Online Detection of Changes in Moment--Based Projections: When to Retrain Deep Learners or Update Portfolios?[J]. Journal of Machine Learning Research, 2026, 27(2):1-50. [原文](https://www.jmlr.org/papers/v27/23-0274.html).
 
@@ -360,6 +442,8 @@ The causal wording follows from the randomized design. Regression estimates the 
 
 ##### Journal of the American Statistical Association（16篇）
 
+Journal of the American Statistical Association (16 papers)
+
 [135] Xinwei Shen, Peter Bühlmann, Armeen Taeb. Causality-Oriented Robustness: Exploiting General Noise Interventions[J]. Journal of the American Statistical Association, 2026, 121(553):704-715. DOI: [10.1080/01621459.2025.2544365](https://doi.org/10.1080/01621459.2025.2544365). [原文](https://doi.org/10.1080/01621459.2025.2544365).
 
 [136] Peter Braunsteins, Sophie Hautphenne, Carmen Minuesa. Consistent Least Squares Estimation in Population-Size-Dependent Branching Processes[J]. Journal of the American Statistical Association, 2026, 121(554):1695-1707. DOI: [10.1080/01621459.2025.2571247](https://doi.org/10.1080/01621459.2025.2571247). [原文](https://doi.org/10.1080/01621459.2025.2571247).
@@ -393,6 +477,8 @@ The causal wording follows from the randomized design. Regression estimates the 
 [150] David T. Frazier, David J. Nott. Posterior Risk of Modular and Semi-Modular Bayesian Inference[J]. Journal of the American Statistical Association, 2026, 121(554):1588-1600. DOI: [10.1080/01621459.2025.2580690](https://doi.org/10.1080/01621459.2025.2580690). [原文](https://doi.org/10.1080/01621459.2025.2580690).
 
 ##### Journal of Econometrics（22篇）
+
+Journal of Econometrics (22 papers)
 
 [151] David W. Hughes. A jackknife bias correction for nonlinear network data models with fixed effects[J]. Journal of Econometrics, 2026, 253:106130. DOI: [10.1016/j.jeconom.2025.106130](https://doi.org/10.1016/j.jeconom.2025.106130). [原文](https://doi.org/10.1016/j.jeconom.2025.106130).
 
@@ -440,6 +526,8 @@ The causal wording follows from the randomized design. Regression estimates the 
 
 ##### The Journal of Finance（5篇）
 
+The Journal of Finance (5 papers)
+
 [173] ROBERT F. DITTMAR, ALEX HSU, GUILLAUME ROUSSELLET, PETER SIMASEK. Default Risk and the Pricing of U.S. Sovereign Bonds[J]. The Journal of Finance, 2026, 81(2):829-869. DOI: [10.1111/jofi.70014](https://doi.org/10.1111/jofi.70014). [原文](https://doi.org/10.1111/jofi.70014).
 
 [174] ALAN KWAN, YUKUN LIU, BEN MATTHIES. Institutional Investor Attention[J]. The Journal of Finance, 2026, 81(2):791-827. DOI: [10.1111/jofi.70009](https://doi.org/10.1111/jofi.70009). [原文](https://doi.org/10.1111/jofi.70009).
@@ -452,6 +540,8 @@ The causal wording follows from the randomized design. Regression estimates the 
 
 ##### Journal of Financial Economics（4篇）
 
+Journal of Financial Economics (4 papers)
+
 [178] Christian Heyerdahl-Larsen, Philipp Illeditsch. Demand disagreement[J]. Journal of Financial Economics, 2026, 175:104191. DOI: [10.1016/j.jfineco.2025.104191](https://doi.org/10.1016/j.jfineco.2025.104191). [原文](https://doi.org/10.1016/j.jfineco.2025.104191).
 
 [179] Quentin Vandeweyer, Minghao Yang, Constantine Yannelis. Discount factors and monetary policy: Evidence from dual-listed stocks[J]. Journal of Financial Economics, 2026, 175:104190. DOI: [10.1016/j.jfineco.2025.104190](https://doi.org/10.1016/j.jfineco.2025.104190). [原文](https://doi.org/10.1016/j.jfineco.2025.104190).
@@ -462,6 +552,8 @@ The causal wording follows from the randomized design. Regression estimates the 
 
 ##### The Review of Financial Studies（3篇）
 
+The Review of Financial Studies (3 papers)
+
 [182] Juan Antolín-Díaz, Ivan Petrella, Juan Rubio-Ramírez. Dividend Momentum and Stock Return Predictability: A Bayesian Approach[J]. The Review of Financial Studies, 2026, 39(5):1506-1554. DOI: [10.1093/rfs/hhaf110](https://doi.org/10.1093/rfs/hhaf110). [原文](https://doi.org/10.1093/rfs/hhaf110).
 
 [183] Christian Kubitza. Investor-Driven Corporate Finance: Evidence from Insurance Markets[J]. The Review of Financial Studies, 2026, hhag003. DOI: [10.1093/rfs/hhag003](https://doi.org/10.1093/rfs/hhag003). [原文](https://doi.org/10.1093/rfs/hhag003).
@@ -469,6 +561,8 @@ The causal wording follows from the randomized design. Regression estimates the 
 [184] Agostino Capponi, Ruizhe Jia, Shihao Yu. Price Discovery on Decentralized Exchanges[J]. The Review of Financial Studies, 2026, hhag002. DOI: [10.1093/rfs/hhag002](https://doi.org/10.1093/rfs/hhag002). [原文](https://doi.org/10.1093/rfs/hhag002).
 
 ##### Quantitative Finance（4篇）
+
+Quantitative Finance (4 papers)
 
 [185] Adele Ravagnani, Fabrizio Lillo, Paola Deriu, Piero Mazzarisi, Francesca Medda, Antonio Russo. Dimensionality reduction techniques to support insider trading detection[J]. Quantitative Finance, 2026, 26(4):563-591. DOI: [10.1080/14697688.2026.2636556](https://doi.org/10.1080/14697688.2026.2636556). [原文](https://doi.org/10.1080/14697688.2026.2636556).
 
@@ -480,13 +574,19 @@ The causal wording follows from the randomized design. Regression estimates the 
 
 ##### Journal of the Royal Statistical Society Series B（1篇）
 
+Journal of the Royal Statistical Society Series B (1 paper)
+
 [189] Ya Zhou, Raymond K. W. Wong, Kejun He. Broadcasted nonparametric tensor regression[J]. Journal of the Royal Statistical Society Series B, 2024, 86(5):1197-1220. DOI: [10.1093/jrsssb/qkae027](https://doi.org/10.1093/jrsssb/qkae027). [原文](https://doi.org/10.1093/jrsssb/qkae027).
 
 ##### Nature（1篇）
 
+Nature (1 paper)
+
 [190] Timothy J. Poterucha, Linyuan Jing, Ramon Pimentel Ricart, Michael Adjei-Mosi, Joshua Finer, Dustin Hartzel, Christopher Kelsey, Aaron Long, Daniel Rocha, Jeffrey A. Ruhl, David vanMaanen, Marc A. Probst, Brock Daniels, Shalmali D. Joshi, Olivier Tastet, Denis Corbin, Robert Avram, Joshua P. Barrios, Geoffrey H. Tison, I-Min Chiu, David Ouyang, Alexander Volodarskiy, Michelle Castillo, Francisco A. Roedan Oliver, Paloma P. Malta, Siqin Ye, Gregg F. Rosner, Jose M. Dizon, Shah R. Ali, Qi Liu, Corey K. Bradley, Prashant Vaishnava, Carol A. Waksmonski, Ersilia M. DeFilippis, Vratika Agarwal, Mark Lebehn, Polydoros N. Kampaktsis, Sofia Shames, Ashley N. Beecy, Deepa Kumaraiah, Shunichi Homma, Allan Schwartz, Rebecca T. Hahn, Martin Leon, Andrew J. Einstein, Mathew S. Maurer, Heidi S. Hartman, John Weston Hughes, Christopher M. Haggerty, Pierre Elias. Detecting structural heart disease from electrocardiograms using AI[J]. Nature, 2025, 644(8075): 221-230. DOI: [10.1038/s41586-025-09227-0](https://doi.org/10.1038/s41586-025-09227-0). [原文](https://doi.org/10.1038/s41586-025-09227-0).
 
 ##### arXiv preprint（2篇）
+
+arXiv preprints (2 papers)
 
 [191] Zhengyang Geng, Mingyang Deng, Xingjian Bai, J. Zico Kolter, Kaiming He. Mean Flows for One-step Generative Modeling[EB/OL]. arXiv, 2025, arXiv:2505.13447v1. DOI: [10.48550/arXiv.2505.13447](https://doi.org/10.48550/arXiv.2505.13447). [版本原文](https://arxiv.org/abs/2505.13447v1).
 
@@ -494,17 +594,25 @@ The causal wording follows from the randomized design. Regression estimates the 
 
 ##### SIAM Journal on Optimization（1篇）
 
+SIAM Journal on Optimization (1 paper)
+
 [193] Xudong Li, Defeng Sun, Kim-Chuan Toh. A Highly Efficient Semismooth Newton Augmented Lagrangian Method for Solving Lasso Problems[J]. SIAM Journal on Optimization, 2018, 28(1):433-458. DOI: [10.1137/16M1097572](https://doi.org/10.1137/16M1097572). [原文](https://doi.org/10.1137/16M1097572).
 
 ##### International Conference on Machine Learning（1篇）
+
+International Conference on Machine Learning (1 paper)
 
 [194] Xinlai Kang, Dunyao Xue, Zhengbo Wang, Chengshuo Du, Xinghao Chen, Hang Zhou, Hanting Chen, Cheng Meng. Breaking the Echo Chamber: A Dynamic Ensemble Pruning Perspective on MoE[C]. International Conference on Machine Learning, 2026. [原文](https://openreview.net/pdf?id=7FsbfQgti4).
 
 ##### IEEE Symposium on Security and Privacy（1篇）
 
+IEEE Symposium on Security and Privacy (1 paper)
+
 [195] Nicholas Carlini, Steve Chien, Milad Nasr, Shuang Song, Andreas Terzis, Florian Tramèr. Membership Inference Attacks From First Principles[C]. IEEE Symposium on Security and Privacy, 2022: 1897-1914. DOI: [10.1109/SP46214.2022.9833649](https://doi.org/10.1109/SP46214.2022.9833649). [原文](https://ieeexplore.ieee.org/document/9833649/).
 
 ##### Biometrika（3篇）
+
+Biometrika (3 papers)
 
 [196] C. H. Miles, I. Shpitser, P. Kanki, S. Meloni, E. J. Tchetgen Tchetgen. On semiparametric estimation of a path-specific effect in the presence of mediator-outcome confounding[J]. Biometrika, 2020, 107(1):159-172. DOI: [10.1093/biomet/asz063](https://doi.org/10.1093/biomet/asz063). [原文](https://doi.org/10.1093/biomet/asz063).
 
@@ -514,16 +622,28 @@ The causal wording follows from the randomized design. Regression estimates the 
 
 ##### The Annals of Statistics（1篇）
 
+The Annals of Statistics (1 paper)
+
 [199] Johannes Schmidt-Hieber. Nonparametric regression using deep neural networks with ReLU activation function[J]. The Annals of Statistics, 2020, 48(4):1875-1897. DOI: [10.1214/19-AOS1875](https://doi.org/10.1214/19-AOS1875). [原文](https://doi.org/10.1214/19-AOS1875).
 
 ##### Management Science（1篇）
+
+Management Science (1 paper)
 
 [200] Xue Wang, Mike Mingcheng Wei, Tao Yao. Online Learning and Decision Making Under Generalized Linear Model with High-Dimensional Data[J]. Management Science, 2024, Articles in Advance:1-19. DOI: [10.1287/mnsc.2022.01557](https://doi.org/10.1287/mnsc.2022.01557). [原文](https://doi.org/10.1287/mnsc.2022.01557).
 
 ## 相关资料
 
+Related resources
+
 研究判断的论文依据见 [SOURCES.md](references/SOURCES.md)，材料范围与训练方法见[开发说明](docs/DEVELOPMENT.md)，更多结果分析、讨论和回应方式见[中文合成实例](references/EXAMPLES_CN.md)与[英文合成实例](references/EXAMPLES_EN.md)。书目另提供 [CSV文件](data/papers.csv)。学术写作可配合 [kai-writing](https://github.com/ykkai-w/kai-writing)，图表制作可配合 [kaiplot](https://github.com/ykkai-w/kai-plot)。项目采用 [MIT 许可证](LICENSE)。
+
+See [SOURCES.md](references/SOURCES.md) for the papers supporting the research guidance and the [Development notes](docs/DEVELOPMENT.md) for the materials covered and training methods. Further approaches to results analysis, discussion, and responses appear in the [Chinese synthetic examples](references/EXAMPLES_CN.md) and [English synthetic examples](references/EXAMPLES_EN.md). The bibliography is also available as a [CSV file](data/papers.csv). Use [kai-writing](https://github.com/ykkai-w/kai-writing) for academic writing and [kaiplot](https://github.com/ykkai-w/kai-plot) for figures. The project uses the [MIT License](LICENSE).
 
 ## 作者
 
+Author
+
 [Kai](https://github.com/ykkai-w)，CAU，金融学与数据科学在读。联系邮箱 [ykai.w@outlook.com](mailto:ykai.w@outlook.com)，其他项目见 [GitHub](https://github.com/ykkai-w) 和 [DMR-ML](https://dmrml.cn)。
+
+[Kai](https://github.com/ykkai-w), studying Finance and Data Science at CAU. Contact [ykai.w@outlook.com](mailto:ykai.w@outlook.com); other projects are on [GitHub](https://github.com/ykkai-w) and [DMR-ML](https://dmrml.cn).
